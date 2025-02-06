@@ -1,0 +1,287 @@
+﻿@using Budget.Shared.Enums
+@using Budget.UI.Models
+@model TransactionsViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+<div class="container my-5">
+    <div class="row gap-5">
+        <div class="col chart-pie-container position-relative">
+            <canvas id="categoryExpensePieChart" role="img"></canvas>
+        </div>
+        <div class="col d-sm-flex gap-4 flex-wrap">
+            <div class="chart-bar-container position-relative">
+                <canvas id="cashFlowChart" role="img"></canvas>
+            </div>
+            <div>
+                <div>
+                    <p class="fs-6 m-0">Expense</p>
+                    <p class="fs-3">@Model.TotalExpense</p>
+                </div>
+                <div>
+                    <p class="fs-6 m-0">Income</p>
+                    <p class="fs-3">@Model.TotalIncome</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <h2>Transactions</h2>
+    <button class="btn btn-primary" id="btnCreate" data-url="@Url.Action("Create", "Transactions")">Create New Transaction</button>
+    <form class="row row-cols-lg-auto align-items-center my-3" method="get" asp-action="Index" asp-controller="Home">
+        <div class="col-md">
+            <label asp-for="CategoryId" class="form-label"></label>
+            <select asp-for="CategoryId" class="form-select" asp-items="Model.Categories">
+                <option value="">All</option>
+            </select>
+        </div>
+        <div class="col-md">
+            <label class="form-label" asp-for="SortOption">Sort by:</label>
+            <select class="form-select text-black" asp-for="SortOption" asp-items="Html.GetEnumSelectList<SortOptions>()">
+            </select>
+        </div>
+        <div class="col-md">
+            <label class="form-label" asp-for="SearchString">Transaction name:</label>
+            <input class="form-control" asp-for="SearchString" />
+        </div>
+        <div class="col-md">
+            <label class="form-label" asp-for="TransactionStartDate">Start date</label>
+            <input class="form-control" asp-for="TransactionStartDate" />
+        </div>
+        <div class="col-md">
+            <label class="form-label" asp-for="TransactionEndDate">End date</label>
+            <input class="form-control" asp-for="TransactionEndDate" />
+        </div>
+        <div class="col-md">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+        <div class="col-md">
+            <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+        </div>
+    </form>
+    @if(Model.Transactions.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered border-primary">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in Model.Transactions)
+                    {
+                        <tr data-id="@transaction.TransactionId">
+                            <td>@transaction.Name</td>
+                            <td>@(transaction.Description ?? "")</td>
+                            <td>@transaction.Amount.ToString("C")</td>
+                            <td>@transaction.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@transaction.Type</td>
+                            <td>@transaction.CategoryName</td>
+                            <td>
+                                <a class="btnEdit"
+                                   data-url="@Url.Action("Edit", "Transactions", new { id = transaction.TransactionId })">
+                                    <img class="icon" src="~/img/edit.svg" />
+                                </a>
+                                <a class="btnDelete"
+                                   data-id="@transaction.TransactionId"
+                                   data-url="@Url.Action("Delete", "Transactions")">
+                                    <img class="icon" src="~/img/delete.svg" />
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    } else
+    {
+        <p class="text-secondary text-center fs-3 mt-4">No transactions found</p>
+    }
+</div>
+
+@await Html.PartialAsync("_Toast")
+
+<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" id="modalContent">
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.onload = function () {
+            loadCategoryExpenseChart();
+            loadCashFlowChart();
+        };
+
+        function loadCashFlowChart() {
+            var monthlySummaryData = @Html.Raw(Json.Serialize(Model.MonthlySummary.Select(m => new { m.Month, m.TotalIncome, m.TotalExpense })));
+            const chartTitle = 'Cash Flow';
+            var labels = monthlySummaryData.map(d => d.month);
+            var incomeData = monthlySummaryData.map(d => d.totalIncome);
+            var expenseData = monthlySummaryData.map(d => d.totalExpense);
+
+            const ctx = document.getElementById('cashFlowChart');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Expense',
+                            data: expenseData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Itim'
+                                },
+                                color: '#171C15'
+                            },
+                            grid: {
+                                color: '#171C15'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: {
+                                    family: 'Itim'
+                                },
+                                color: '#171C15'
+                            },
+                            grid: {
+                                color: '#171C15'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 600
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Itim'
+                                },
+                                color: '#171C15'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: chartTitle,
+                            font: {
+                                family: 'Itim',
+                                size: 20
+                            },
+                            color: '#171C15'
+                        },
+                        tooltip: {
+                            titleFont: {
+                                family: 'Itim'
+                            },
+                            bodyFont: {
+                                family: 'Itim'
+                            },
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    return `${tooltipItem.dataset.label}: £${Number(tooltipItem.raw).toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadCategoryExpenseChart() {
+            var categoryExpenseData = @Html.Raw(Json.Serialize(Model.CategoryExpenses.Select(t => new { t.CategoryName, t.TotalExpense })));
+            const chartTitle = 'Category Expenses';
+            var labels = categoryExpenseData.map(d => d.categoryName);
+            var data = categoryExpenseData.map(d => d.totalExpense);
+
+            const ctx = document.getElementById('categoryExpensePieChart');
+            var ariaLabel = `${chartTitle}. ${labels.map((name, index) => `${name}: ${data[index].toFixed(2)}`).join('. ')}`;
+            ctx.setAttribute('aria-label', ariaLabel);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: chartTitle,
+                        data: data,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40'],
+                        hoverBackgroundColor: ['#FF4384', '#36A3EB', '#FFBF56', '#4BC0F0', '#FF8F40']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: {
+                        duration: 600
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Itim'
+                                },
+                                color: '#171C15'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: chartTitle,
+                            font: {
+                                family: 'Itim',
+                                size: 20
+                            },
+                            color: '#171C15'
+                        },
+                        tooltip: {
+                            titleFont: {
+                                family: 'Itim'
+                            },
+                            bodyFont: {
+                                family: 'Itim'
+                            },
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `${tooltipItem.label}: £${Number(tooltipItem.raw).toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

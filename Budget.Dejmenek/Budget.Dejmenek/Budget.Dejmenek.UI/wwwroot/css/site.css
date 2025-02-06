@@ -1,0 +1,61 @@
+:root {
+    --bs-body-bg: #FCF3E4;
+    --bs-primary: #171C15;
+    --bs-primary-rgb: 23, 28, 21;
+    --bs-secondary: #CE4E4E;
+    --bs-secondary-rgb: 206, 78, 78;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+    font-family: "Itim", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.border-primary {
+    border-color: var(--bs-primary) !important;
+}
+
+.border-secondary {
+    border-color: var(--bs-secondary) !important;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.chart-bar-container {
+    width: 100%;
+    max-width: 600px;
+    height: 30vh;
+}
+
+.chart-pie-container {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+}
+
+.icon {
+    width: 32px;
+    height: 32px;
+}

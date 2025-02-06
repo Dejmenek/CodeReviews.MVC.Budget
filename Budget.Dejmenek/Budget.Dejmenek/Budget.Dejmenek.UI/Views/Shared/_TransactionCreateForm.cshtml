@@ -1,0 +1,67 @@
+﻿@using Budget.UI.Models
+@model TransactionCreateViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Create Transaction</h5>
+    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+        <img class="icon" src="~/img/cross.svg" />
+    </button>
+</div>
+<div class="modal-body">
+    <form id="form" method="post" action="@Url.Action("Create", "Transactions")">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label asp-for="Transaction.Name" class="control-label"></label>
+            <input asp-for="Transaction.Name" class="form-control" />
+            <span asp-validation-for="Transaction.Name" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Transaction.Description" class="control-label"></label>
+            <input asp-for="Transaction.Description" class="form-control" />
+            <span asp-validation-for="Transaction.Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Transaction.Amount" class="control-label"></label>
+            <input asp-for="Transaction.Amount" class="form-control" />
+            <span asp-validation-for="Transaction.Amount" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Transaction.Date" class="control-label"></label>
+            <input asp-for="Transaction.Date" class="form-control" />
+            <span asp-validation-for="Transaction.Date" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label" asp-for="Transaction.Type"></label>
+            <div>
+                <input type="radio" asp-for="Transaction.Type" value="Income" id="typeIncome" />
+                <label for="typeIncome">Income</label>
+
+                <input type="radio" asp-for="Transaction.Type" value="Expense" id="typeExpense" />
+                <label for="typeExpense">Expense</label>
+            </div>
+            <span asp-validation-for="Transaction.Type" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Transaction.CategoryId" class="control-label"></label>
+            <select asp-for="Transaction.CategoryId" class="form-control" asp-items="Model.Categories">
+                <option value="">Select a Category</option>
+            </select>
+            <span asp-validation-for="Transaction.CategoryId" class="text-danger"></span>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-primary" id="btnSave">Save</button>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
